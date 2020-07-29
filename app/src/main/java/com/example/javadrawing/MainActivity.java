@@ -1,5 +1,4 @@
 package com.example.javadrawing;
-
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -16,8 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
-
-
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
@@ -73,10 +70,7 @@ public class MainActivity extends Activity {
 
     private Executor executor = Executors.newSingleThreadExecutor();
     private Classifier classifier;
-    //   private ImageProcessor mImgProcessor = new ImageProcessor();
-    //  private IOUtils mIOUtils = new IOUtils();
-    // ArrayList<RoiObject> mRoiImages = new ArrayList<RoiObject>(50);
-    // tensorflow input and output
+
     private static final int INPUT_SIZE = 28;
     private static final String INPUT_NAME = "input";
     private static final String OUTPUT_NAME = "output";
@@ -85,7 +79,7 @@ public class MainActivity extends Activity {
     private final static String[] DIGITS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
     ArrayList<RoiObject> mRoiImages = new ArrayList<RoiObject>(50);
-    private static final String MODEL_FILE = "file:///android_asset/expert-graph.pb";
+    private static final String MODEL_FILE = "file:///android_asset/data.pb";
     private static final String LABEL_FILE = "file:///android_asset/labels.txt";
     //   private static final String TAG = ;
     static {
@@ -113,7 +107,7 @@ public class MainActivity extends Activity {
 
     private void onClassify()
     {
-        String re1="",re2="",re3="";
+        String re1="",re2="",re3="",re4="";
         StringBuilder ResultDigits  = new StringBuilder("");
         mRoiImages.clear();
         Bitmap bitmap = drawingView.getBitmap();
@@ -143,8 +137,8 @@ public class MainActivity extends Activity {
         {
             drawContours(result, contours,
                     i, // draw all contours
-                    new Scalar(255, 255, 255), // in blue
-                    40); // with a thickness of 1
+                    new Scalar(255, 255, 255),
+                    40);
 
         }
 
@@ -158,7 +152,7 @@ public class MainActivity extends Activity {
         while(itc.hasNext())
         {
 
-            //Create bounding rect of object
+
             MatOfPoint mp = new MatOfPoint(itc.next().toArray());
             Rect mr = boundingRect(mp);
             // Imgproc.rectangle(result,new Point(mr.x,mr.y),new Point(mr.x+mr.width,mr.y+mr.height),new Scalar(0,255,0));
@@ -185,8 +179,8 @@ public class MainActivity extends Activity {
         }
         Collections.sort(mRoiImages);
         int z=5;
-        //Set the max number of digits to read to 9 (arbitrarily chosen)
-        int max = (mRoiImages.size() > 9) ? 9 : mRoiImages.size();
+
+        int max = (mRoiImages.size() > 4) ? 4 : mRoiImages.size();
         for (int i = 0; i < max; i++) {
             RoiObject roi = mRoiImages.get(i);
             roi.bmp= toGrayScale(roi.bmp);
@@ -209,32 +203,64 @@ public class MainActivity extends Activity {
                 re2=dig;
             else if(i==2)
                 re3=dig;
+            else if(i==3)
+                re4=dig;
         }
         Log.i(LOG_TAG, "digit1 =" + re1);
         Log.i(LOG_TAG, "digit2 =" + re2);
         Log.i(LOG_TAG, "digit3 =" + re3);
-        if(re2.equals("8"))
+        //1+21
+        if(re2.equals("10"))
         {
-            Integer r=Integer.parseInt(re1) * Integer.parseInt(re3);
+            re4 = re3+re4;
+            Integer r=Integer.parseInt(re1) + Integer.parseInt(re4);
             ResultDigits.append(""+r.toString());
         }
-        else if(re2.equals("7"))
+        else if(re2.equals("11"))
         {
-            Integer r=Integer.parseInt(re1) / Integer.parseInt(re3);
+            re4 = re3+re4;
+            Integer r=Integer.parseInt(re1) - Integer.parseInt(re4);
             ResultDigits.append(""+r.toString());
         }
-        else if(re2.equals("5"))
+        else if(re2.equals("12"))
         {
-            Integer r=Integer.parseInt(re1) - Integer.parseInt(re3);
+            re4 = re3+re4;
+            Integer r=Integer.parseInt(re1) * Integer.parseInt(re4);
             ResultDigits.append(""+r.toString());
         }
-        else if(re2.equals("4"))
+        else if(re2.equals("13"))
         {
-            Integer r=Integer.parseInt(re1) + Integer.parseInt(re3);
+            re4 = re3+re4;
+            Integer r=Integer.parseInt(re1) / Integer.parseInt(re4);
             ResultDigits.append(""+r.toString());
         }
-        if(re2.isEmpty())
-            ResultDigits.append(""+re1);
+
+        if(re3.equals("10"))
+        {
+            re1 = re1+re2;
+            Integer r=Integer.parseInt(re1) + Integer.parseInt(re4);
+            ResultDigits.append(""+r.toString());
+        }
+        else if(re3.equals("11"))
+        {
+            re1 = re1+re2;
+            Integer r=Integer.parseInt(re1) - Integer.parseInt(re4);
+            ResultDigits.append(""+r.toString());
+        }
+        else if(re3.equals("12"))
+        {
+            re1 = re1+re2;
+            Integer r=Integer.parseInt(re1) * Integer.parseInt(re4);
+            ResultDigits.append(""+r.toString());
+        }
+        else if(re3.equals("13"))
+        {
+            re1 = re1+re2;
+            Integer r=Integer.parseInt(re1) / Integer.parseInt(re4);
+            ResultDigits.append(""+r.toString());
+        }
+     //   if(re2.isEmpty())
+       //     ResultDigits.append(""+re1);
 
 
         Log.i(LOG_TAG,"result"+ResultDigits);
@@ -246,8 +272,7 @@ public class MainActivity extends Activity {
     }
     public Bitmap scaling(Bitmap bitmap, int newWidth, int newHeight)
     {
-        //bitmap it's the bitmap you want to resize
-        //newWidth and newHeight are the with and height that you want to the new bitmap
+
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
         float scaleWidth = ((float) newWidth) / width;
