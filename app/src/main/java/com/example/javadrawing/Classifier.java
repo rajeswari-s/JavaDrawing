@@ -58,7 +58,7 @@ public class Classifier {
 
         classifier.tfHelper = new TensorFlowInferenceInterface(assetManager, modelPath);
 
-        int numClasses = 10;
+        int numClasses = 14;
 
         classifier.inputSize = inputSize;
         classifier.outputNames = new String[]{outputName};
